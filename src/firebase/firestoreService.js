@@ -4,6 +4,7 @@ import {
   setDoc, 
   doc, 
   updateDoc, 
+  deleteDoc,
   increment, 
   arrayUnion, 
   query, 
@@ -85,6 +86,29 @@ export async function addCommentToStoryInDb(storyId, comment) {
       });
     } catch (error) {
       console.error("Erro ao adicionar comentário no Firebase:", error);
+    }
+  }
+}
+
+export async function updateStoryStatusInDb(storyId, status) {
+  if (isFirebaseConfigured() && db) {
+    try {
+      const storyRef = doc(db, STORIES_COLLECTION, storyId);
+      await updateDoc(storyRef, { status });
+      console.log(`✅ Status do conto ${storyId} atualizado para ${status} no Firebase!`);
+    } catch (error) {
+      console.error("Erro ao atualizar status no Firebase:", error);
+    }
+  }
+}
+
+export async function deleteStoryFromDb(storyId) {
+  if (isFirebaseConfigured() && db) {
+    try {
+      await deleteDoc(doc(db, STORIES_COLLECTION, storyId));
+      console.log(`🗑️ Conto ${storyId} deletado do Firebase!`);
+    } catch (error) {
+      console.error("Erro ao deletar conto no Firebase:", error);
     }
   }
 }

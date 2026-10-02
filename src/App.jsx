@@ -5,6 +5,7 @@ import StoryCard from './components/StoryCard';
 import StoryReader from './components/StoryReader';
 import StoryEditor from './components/StoryEditor';
 import AnonymousWall from './components/AnonymousWall';
+import AdminPanel from './components/AdminPanel';
 import Footer from './components/Footer';
 import { CATEGORIES, DEFAULT_STORIES } from './data/defaultStories';
 import { 
@@ -19,12 +20,14 @@ import {
   saveStoryToDb, 
   reactToStoryInDb, 
   addCommentToStoryInDb,
+  updateStoryStatusInDb,
+  deleteStoryFromDb,
   fetchMuralFromDb,
   saveMuralPostToDb,
   likeMuralPostInDb
 } from './firebase/firestoreService';
 import { isFirebaseConfigured } from './firebase/config';
-import { Coffee, Bookmark, CheckCircle2, Cloud } from 'lucide-react';
+import { Coffee, Bookmark, CheckCircle2, Cloud, ShieldAlert } from 'lucide-react';
 
 export default function App() {
   const [stories, setStories] = useState([]);
@@ -137,16 +140,52 @@ export default function App() {
     showToast("Comentário publicado com sucesso!");
   };
 
-  // Save new Story from Editor
+  // Save new Story from Editor (always created as 'pending')
   const handleSaveStory = (newStory) => {
     const updated = [newStory, ...stories];
     setStories(updated);
     saveStoredStories(updated);
     saveStoryToDb(newStory);
 
-    setSelectedStory(newStory);
-    setCurrentView('reader');
-    showToast("🎉 Ponto batido! Seu novo conto foi publicado.");
+    setCurrentView('feed');
+    showToast("📬 Causo enviado para a Chefia! O administrador irá ler e aprovar antes de ir ao ar.");
+  };
+
+  // Admin: Approve and Publish Story
+  const handleApproveStory = (storyId) => {
+    const updated = stories.map(s => {
+      if (s.id === storyId) {
+        return { ...s, status: 'published' };
+      }
+      return s;
+    });
+    setStories(updated);
+    saveStoredStories(updated);
+    updateStoryStatusInDb(storyId, 'published');
+    showToast("✅ Conto aprovado e publicado para todos os leitores!");
+  };
+
+  // Admin: Unpublish Story
+  const handleUnpublishStory = (storyId) => {
+    const updated = stories.map(s => {
+      if (s.id === storyId) {
+        return { ...s, status: 'pending' };
+      }
+      return s;
+    });
+    setStories(updated);
+    saveStoredStories(updated);
+    updateStoryStatusInDb(storyId, 'pending');
+    showToast("Conto ocultado e retornado para análise da Chefia.");
+  };
+
+  // Admin: Delete Story
+  const handleDeleteStory = (storyId) => {
+    const updated = stories.filter(s => s.id !== storyId);
+    setStories(updated);
+    saveStoredStories(updated);
+    deleteStoryFromDb(storyId);
+    showToast("🗑️ Conto deletado permanentemente.");
   };
 
   // Add anonymous wall post
@@ -189,8 +228,12 @@ export default function App() {
     showToast("Backup baixado com sucesso!");
   };
 
-  // Filtered stories logic
+  // Filtered stories logic (regular public readers only see approved/published stories!)
   const filteredStories = stories.filter((story) => {
+    // Only approved/published stories are shown in the public feed
+    const isApproved = story.status === 'published' || !story.status;
+    if (!isApproved) return false;
+
     const matchesCategory = selectedCategory === 'Todos' || story.category === selectedCategory;
     const query = searchQuery.toLowerCase().trim();
     const matchesSearch = !query || 
@@ -268,6 +311,14 @@ export default function App() {
             posts={anonymousPosts}
             onAddPost={handleAddAnonymousPost}
             onLikePost={handleLikeAnonymousPost}
+          />
+        ) : currentView === 'admin' ? (
+          <AdminPanel
+            stories={stories}
+            onApproveStory={handleApproveStory}
+            onDeleteStory={handleDeleteStory}
+            onUnpublishStory={handleUnpublishStory}
+            onBackToBlog={() => setCurrentView('feed')}
           />
         ) : (
           /* Feed View & Saved View */

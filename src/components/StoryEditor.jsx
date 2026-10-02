@@ -97,6 +97,7 @@ export default function StoryEditor({ onSaveStory, onCancel }) {
       },
       summary: summary.trim() || title.trim(),
       content: content.trim(),
+      status: 'pending',
       reactions: { coffee: 1, clown: 0, facepalm: 0, heart: 1 },
       comments: []
     };

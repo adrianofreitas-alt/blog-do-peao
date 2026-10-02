@@ -20,6 +20,7 @@ export const DEFAULT_STORIES = [
       facepalm: 37,
       heart: 18
     },
+    status: 'published',
     comments: [
       {
         id: "c1",
@@ -89,6 +90,7 @@ E assim a firma segue. Com fome, com sede de justiça e com medo do que quer que
       facepalm: 81,
       heart: 14
     },
+    status: 'published',
     comments: [
       {
         id: "c3",
@@ -166,6 +168,7 @@ Levantei da cadeira com a sensação de ter envelhecido cinco anos bissextos. Ma
       facepalm: 90,
       heart: 32
     },
+    status: 'published',
     comments: [
       {
         id: "c4",
@@ -241,6 +244,7 @@ Voltei para a minha baia, fechei o chamado categorizando como *"Falha na interfa
       facepalm: 74,
       heart: 22
     },
+    status: 'published',
     comments: [
       {
         id: "c5",

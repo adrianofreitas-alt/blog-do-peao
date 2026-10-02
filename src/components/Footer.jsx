@@ -1,5 +1,5 @@
 import React from 'react';
-import { Coffee, ShieldCheck, Heart, RotateCcw } from 'lucide-react';
+import { Coffee, ShieldCheck, Heart, RotateCcw, Lock } from 'lucide-react';
 
 export default function Footer({ setCurrentView, onResetDefaultStories }) {
   return (
@@ -76,7 +76,17 @@ export default function Footer({ setCurrentView, onResetDefaultStories }) {
         </div>
 
         <div className="pt-8 border-t border-stone-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-400 gap-3">
-          <p>© {new Date().getFullYear()} Blog do Peão. Todos os direitos reservados à classe trabalhadora.</p>
+          <div className="flex items-center gap-3">
+            <p>© {new Date().getFullYear()} Blog do Peão. Todos os direitos reservados.</p>
+            <button
+              onClick={() => setCurrentView('admin')}
+              className="opacity-40 hover:opacity-100 hover:text-amber-600 transition flex items-center gap-1 text-[11px]"
+              title="Sala da Chefia (Administração)"
+            >
+              <Lock className="w-3 h-3" />
+              <span>Chefia</span>
+            </button>
+          </div>
           <p className="flex items-center gap-1">
             Feito com <Heart className="w-3 h-3 text-red-500 fill-current" /> e muito café coado na firma.
           </p>
