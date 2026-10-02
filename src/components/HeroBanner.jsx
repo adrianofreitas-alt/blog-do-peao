@@ -40,7 +40,7 @@ export default function HeroBanner({ selectedCategory, setSelectedCategory, cate
             </h1>
 
             <p className="text-stone-300 text-sm sm:text-base leading-relaxed mb-6 font-light">
-              Histórias verídicas e dramatizadas sobre as loucuras do mundo corporativo: reuniões que duram eras, café com gosto de ferrugem, dramas de RH e a eterna espera pelo 5º dia útil.
+              Histórias verídicas e dramatizadas sobre as loucuras do mundo corporativo. Quer participar? Clique no botão 'Bater ponto' e compartilhe a sua história.
             </p>
 
             {/* Satirical Quote Carousel */}
