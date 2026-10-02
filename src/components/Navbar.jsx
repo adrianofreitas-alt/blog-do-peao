@@ -30,13 +30,8 @@ export default function Navbar({
             onClick={() => setCurrentView('feed')} 
             className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group select-none shrink-0"
           >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-white shadow-md shadow-amber-600/20 group-hover:scale-105 transition-transform shrink-0">
-              <Coffee className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
+            <img src="/logo.jpg" alt="Blog do Peão" className="h-10 sm:h-12 w-auto object-contain group-hover:scale-105 transition-transform shrink-0 rounded-md" />
             <div className="flex flex-col justify-center">
-              <span className="font-black text-lg sm:text-2xl tracking-tight text-stone-900 dark:text-white whitespace-nowrap leading-tight">
-                Blog do <span className="text-amber-600 dark:text-amber-400">Peão</span>
-              </span>
               <p className="text-[11px] text-stone-500 dark:text-stone-400 hidden md:block leading-none mt-0.5">
                 Causos, cafezinho frio e o folclore da firma
               </p>
