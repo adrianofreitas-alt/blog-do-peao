@@ -123,7 +123,7 @@ export default function StoryEditor({ onSaveStory, onCancel }) {
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs sm:text-sm font-bold shadow-md shadow-amber-600/30 transition hover:scale-[1.02] active:scale-95"
           >
             <Save className="w-4 h-4" />
-            <span>Bater Ponto & Publicar</span>
+            <span>Publicar</span>
           </button>
         </div>
       </div>
@@ -359,6 +359,20 @@ export default function StoryEditor({ onSaveStory, onCancel }) {
             </div>
           )}
 
+        </div>
+
+        {/* Bottom Actions */}
+        <div className="flex flex-col items-center gap-3 mt-6 pt-6 border-t border-stone-200 dark:border-slate-800">
+          <button
+            type="submit"
+            className="flex items-center gap-2 px-8 py-3.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold shadow-md shadow-amber-600/30 transition hover:scale-[1.02] active:scale-95"
+          >
+            <Save className="w-5 h-5" />
+            <span>Publicar</span>
+          </button>
+          <p className="text-xs text-stone-500 dark:text-stone-400 text-center max-w-md">
+            O texto só será publicado mediante revisão da chefia. Esta medida serve para evitar textos ofensivos e impróprios.
+          </p>
         </div>
 
       </form>
