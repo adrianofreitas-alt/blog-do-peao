@@ -72,6 +72,18 @@ export default function App() {
     }
   }, [isDarkMode]);
 
+  // Support direct #admin hash in URL
+  useEffect(() => {
+    const checkHash = () => {
+      if (window.location.hash === '#admin') {
+        setCurrentView('admin');
+      }
+    };
+    checkHash();
+    window.addEventListener('hashchange', checkHash);
+    return () => window.removeEventListener('hashchange', checkHash);
+  }, []);
+
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
@@ -273,14 +285,6 @@ export default function App() {
         bookmarksCount={bookmarks.length}
         onExportAll={handleExportAll}
       />
-
-      {/* Cloud status banner (subtle indicator) */}
-      {isFirebaseConfigured() && (
-        <div className="bg-amber-600 text-white text-[11px] font-medium py-1 px-4 text-center flex items-center justify-center gap-1.5 shadow-inner">
-          <Cloud className="w-3.5 h-3.5" />
-          <span>Banco de dados na nuvem (Firebase Firestore) conectado e sincronizado!</span>
-        </div>
-      )}
 
       {/* Content depending on current view */}
       <div className="flex-1">

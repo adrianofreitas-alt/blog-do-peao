@@ -32,10 +32,10 @@ export default function HeroBanner({ selectedCategory, setSelectedCategory, cate
           <div className="relative z-10 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-semibold mb-4 backdrop-blur-sm">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>O portal da resistência CLT</span>
+              <span>O portal dos causos da firma</span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight mb-4">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight mb-4">
               Crônicas de quem bate o ponto e <span className="text-amber-400">ri pra não chorar</span>.
             </h1>
 

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Coffee, ShieldCheck, Heart, RotateCcw, Lock } from 'lucide-react';
+import { Coffee, ShieldCheck, Heart, RotateCcw, Lock, Cloud } from 'lucide-react';
+import { isFirebaseConfigured } from '../firebase/config';
 
 export default function Footer({ setCurrentView, onResetDefaultStories }) {
   return (
@@ -75,16 +76,26 @@ export default function Footer({ setCurrentView, onResetDefaultStories }) {
 
         </div>
 
+        {/* Indicador discreto de banco de dados na nuvem no final da página */}
+        {isFirebaseConfigured() && (
+          <div className="mb-6 flex items-center justify-center">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-400 text-xs font-medium">
+              <Cloud className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Banco de dados na nuvem (Firebase Firestore) conectado e sincronizado</span>
+            </div>
+          </div>
+        )}
+
         <div className="pt-8 border-t border-stone-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-400 gap-3">
           <div className="flex items-center gap-3">
             <p>© {new Date().getFullYear()} Blog do Peão. Todos os direitos reservados.</p>
             <button
               onClick={() => setCurrentView('admin')}
-              className="opacity-40 hover:opacity-100 hover:text-amber-600 transition flex items-center gap-1 text-[11px]"
-              title="Sala da Chefia (Administração)"
+              className="opacity-60 hover:opacity-100 hover:text-amber-600 text-stone-500 dark:text-stone-400 transition flex items-center gap-1.5 text-xs font-semibold underline underline-offset-4 cursor-pointer"
+              title="Acesso do Administrador"
             >
-              <Lock className="w-3 h-3" />
-              <span>Chefia</span>
+              <Lock className="w-3.5 h-3.5 text-amber-600" />
+              <span>Sala da Chefia</span>
             </button>
           </div>
           <p className="flex items-center gap-1">

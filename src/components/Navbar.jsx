@@ -7,9 +7,7 @@ import {
   Search, 
   Bookmark, 
   MessageSquareQuote, 
-  Download,
-  Flame,
-  FileText
+  Download
 } from 'lucide-react';
 
 export default function Navbar({ 
@@ -23,28 +21,23 @@ export default function Navbar({
   onExportAll
 }) {
   return (
-    <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-stone-200 dark:border-slate-800 transition-colors">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
+    <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-stone-200 dark:border-slate-800 transition-colors shadow-sm">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
           
-          {/* Logo & Branding */}
+          {/* Logo & Branding - Limpo e sempre visível no celular */}
           <div 
             onClick={() => setCurrentView('feed')} 
-            className="flex items-center gap-3 cursor-pointer group select-none"
+            className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group select-none shrink-0"
           >
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-white shadow-md shadow-amber-600/20 group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-white shadow-md shadow-amber-600/20 group-hover:scale-105 transition-transform shrink-0">
               <Coffee className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-lg sm:text-xl tracking-tight text-stone-900 dark:text-white">
-                  Blog do <span className="text-amber-600 dark:text-amber-400">Peão</span>
-                </span>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300">
-                  CLT Raiz
-                </span>
-              </div>
-              <p className="text-xs text-stone-500 dark:text-stone-400 hidden sm:block">
+            <div className="flex flex-col justify-center">
+              <span className="font-black text-lg sm:text-2xl tracking-tight text-stone-900 dark:text-white whitespace-nowrap leading-tight">
+                Blog do <span className="text-amber-600 dark:text-amber-400">Peão</span>
+              </span>
+              <p className="text-[11px] text-stone-500 dark:text-stone-400 hidden md:block leading-none mt-0.5">
                 Causos, cafezinho frio e o folclore da firma
               </p>
             </div>
@@ -72,21 +65,21 @@ export default function Navbar({
             </div>
           </div>
 
-          {/* Navigation & Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Navigation & Actions - Otimizado e sem espremer o título no celular */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             
             {/* Mural da Copa Button */}
             <button
               onClick={() => setCurrentView('wall')}
-              className={`flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
                 currentView === 'wall'
                   ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300'
                   : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-slate-800'
               }`}
               title="Mural de micro-causos da copa"
             >
-              <MessageSquareQuote className="w-4 h-4 text-amber-600" />
-              <span className="hidden sm:inline">Mural da Copa</span>
+              <MessageSquareQuote className="w-4 h-4 text-amber-600 shrink-0" />
+              <span className="hidden lg:inline">Mural da Copa</span>
             </button>
 
             {/* Saved bookmarks */}
@@ -126,9 +119,9 @@ export default function Navbar({
             {/* Write Story CTA */}
             <button
               onClick={() => setCurrentView('editor')}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-stone-900 hover:bg-stone-800 dark:bg-amber-600 dark:hover:bg-amber-500 text-white text-xs sm:text-sm font-semibold shadow-sm transition hover:shadow group"
+              className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-stone-900 hover:bg-stone-800 dark:bg-amber-600 dark:hover:bg-amber-500 text-white text-xs sm:text-sm font-bold shadow-sm transition hover:shadow group shrink-0"
             >
-              <PenTool className="w-4 h-4 transition-transform group-hover:rotate-12" />
+              <PenTool className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:rotate-12" />
               <span>Bater Ponto</span>
             </button>
 
@@ -145,8 +138,16 @@ export default function Navbar({
               placeholder="Buscar causos da firma..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-1.5 text-xs bg-stone-100 dark:bg-slate-800 rounded-lg border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full pl-9 pr-4 py-2 text-xs bg-stone-100 dark:bg-slate-800 rounded-xl border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500"
             />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+              >
+                ✕
+              </button>
+            )}
           </div>
         </div>
 
