@@ -277,7 +277,7 @@ export default function StoryReader({
             <div className="flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-amber-600" />
               <h3 className="text-lg font-bold text-stone-900 dark:text-white">
-                Comentários da Rádio Peão ({story.comments?.length || 0})
+                Comentários da Rádio Peão ({story.comments?.filter(c => !c.isHidden && !c.isDeleted).length || 0})
               </h3>
             </div>
             <span className="text-xs text-stone-400">Totalmente anônimo</span>
@@ -321,8 +321,8 @@ export default function StoryReader({
 
           {/* Comment list */}
           <div className="space-y-4">
-            {story.comments && story.comments.length > 0 ? (
-              story.comments.map((c) => (
+            {story.comments && story.comments.filter(c => !c.isHidden && !c.isDeleted).length > 0 ? (
+              story.comments.filter(c => !c.isHidden && !c.isDeleted).map((c) => (
                 <div 
                   key={c.id} 
                   className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800"

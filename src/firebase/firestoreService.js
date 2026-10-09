@@ -102,6 +102,17 @@ export async function updateStoryStatusInDb(storyId, status) {
   }
 }
 
+export async function updateStoryInDb(storyId, updates) {
+  if (isFirebaseConfigured() && db) {
+    try {
+      const storyRef = doc(db, STORIES_COLLECTION, storyId);
+      await updateDoc(storyRef, updates);
+    } catch (error) {
+      console.error("Erro ao atualizar propriedades do conto no Firebase:", error);
+    }
+  }
+}
+
 export async function deleteStoryFromDb(storyId) {
   if (isFirebaseConfigured() && db) {
     try {

@@ -21,6 +21,7 @@ import {
   reactToStoryInDb, 
   addCommentToStoryInDb,
   updateStoryStatusInDb,
+  updateStoryInDb,
   deleteStoryFromDb,
   fetchMuralFromDb,
   saveMuralPostToDb,
@@ -161,6 +162,30 @@ export default function App() {
 
     setCurrentView('feed');
     showToast("📬 Causo enviado para a Chefia! O administrador irá ler e aprovar antes de ir ao ar.");
+  };
+
+  // Manage Comment Status
+  const handleUpdateCommentStatus = (storyId, commentId, updates) => {
+    let updatedStory = null;
+    const updatedStories = stories.map(s => {
+      if (s.id === storyId) {
+        const updatedComments = (s.comments || []).map(c => 
+          c.id === commentId ? { ...c, ...updates } : c
+        );
+        updatedStory = { ...s, comments: updatedComments };
+        return updatedStory;
+      }
+      return s;
+    });
+
+    if (updatedStory) {
+      setStories(updatedStories);
+      saveStoredStories(updatedStories);
+      updateStoryInDb(storyId, { comments: updatedStory.comments });
+      if (selectedStory && selectedStory.id === storyId) {
+        setSelectedStory(updatedStory);
+      }
+    }
   };
 
   // Admin: Approve and Publish Story
@@ -322,6 +347,7 @@ export default function App() {
             onApproveStory={handleApproveStory}
             onDeleteStory={handleDeleteStory}
             onUnpublishStory={handleUnpublishStory}
+            onUpdateCommentStatus={handleUpdateCommentStatus}
             onBackToBlog={() => setCurrentView('feed')}
           />
         ) : (

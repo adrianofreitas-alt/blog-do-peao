@@ -21,6 +21,7 @@ export default function AdminPanel({
   onApproveStory, 
   onDeleteStory, 
   onUnpublishStory,
+  onUpdateCommentStatus,
   onBackToBlog 
 }) {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -380,6 +381,84 @@ export default function AdminPanel({
                 className="prose-peao text-sm"
                 dangerouslySetInnerHTML={{ __html: marked.parse(previewStory.content || '') }}
               />
+
+              {/* Comments Moderation Section */}
+              {previewStory.comments && previewStory.comments.length > 0 && (
+                <div className="mt-8 pt-6 border-t border-stone-200 dark:border-slate-700 font-sans">
+                  <h4 className="font-bold text-stone-900 dark:text-white mb-4">Comentários da Rádio Peão</h4>
+                  <div className="space-y-3">
+                    {previewStory.comments.map((comment) => (
+                      <div key={comment.id} className="p-3 rounded-xl bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-sm text-stone-900 dark:text-white">
+                            {comment.author} <span className="font-normal text-xs text-stone-500">({comment.role})</span>
+                          </span>
+                          <div className="flex items-center gap-2">
+                            {comment.isHidden && (
+                              <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300">
+                                Oculto
+                              </span>
+                            )}
+                            {comment.isDeleted && (
+                              <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300">
+                                Lixeira
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <p className={`text-sm ${comment.isDeleted ? 'line-through text-stone-400' : 'text-stone-700 dark:text-stone-300'}`}>
+                          {comment.text}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          {!comment.isDeleted && (
+                            <button
+                              onClick={() => {
+                                onUpdateCommentStatus(previewStory.id, comment.id, { isHidden: !comment.isHidden });
+                                setPreviewStory(prev => ({
+                                  ...prev,
+                                  comments: prev.comments.map(c => c.id === comment.id ? { ...c, isHidden: !comment.isHidden } : c)
+                                }));
+                              }}
+                              className="text-[11px] font-semibold px-2 py-1 rounded bg-stone-200 hover:bg-stone-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-stone-700 dark:text-stone-300 transition"
+                            >
+                              {comment.isHidden ? '👁️ Exibir Comentário' : '🙈 Ocultar Comentário'}
+                            </button>
+                          )}
+                          {!comment.isDeleted ? (
+                            <button
+                              onClick={() => {
+                                if (window.confirm('Tem certeza que deseja mandar este comentário para a lixeira?')) {
+                                  onUpdateCommentStatus(previewStory.id, comment.id, { isDeleted: true });
+                                  setPreviewStory(prev => ({
+                                    ...prev,
+                                    comments: prev.comments.map(c => c.id === comment.id ? { ...c, isDeleted: true } : c)
+                                  }));
+                                }
+                              }}
+                              className="text-[11px] font-semibold px-2 py-1 rounded bg-red-100 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-900/60 text-red-700 dark:text-red-300 transition"
+                            >
+                              🗑️ Lixeira
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                onUpdateCommentStatus(previewStory.id, comment.id, { isDeleted: false });
+                                setPreviewStory(prev => ({
+                                  ...prev,
+                                  comments: prev.comments.map(c => c.id === comment.id ? { ...c, isDeleted: false } : c)
+                                }));
+                              }}
+                              className="text-[11px] font-semibold px-2 py-1 rounded bg-stone-200 hover:bg-stone-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-stone-700 dark:text-stone-300 transition"
+                            >
+                              ♻️ Restaurar da Lixeira
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Modal Actions */}
