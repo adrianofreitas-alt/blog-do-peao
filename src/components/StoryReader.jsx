@@ -11,7 +11,9 @@ import {
   Check, 
   Coffee,
   Heart,
-  Type
+  Type,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { marked } from 'marked';
 import { exportStoryToMarkdown } from '../utils/storage';
@@ -32,6 +34,45 @@ export default function StoryReader({
   const [commentName, setCommentName] = useState('');
   const [commentRole, setCommentRole] = useState('');
   const [commentText, setCommentText] = useState('');
+
+  // TTS State
+  const [isReading, setIsReading] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  const toggleReading = () => {
+    if (!('speechSynthesis' in window)) {
+      alert("Seu navegador não suporta leitura em voz alta.");
+      return;
+    }
+
+    if (isReading) {
+      window.speechSynthesis.cancel();
+      setIsReading(false);
+    } else {
+      const plainText = (story.content || '')
+        .replace(/[#*>_-]/g, '')
+        .replace(/`{1,3}[^`\n]*`{1,3}/g, '')
+        .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+        
+      const fullText = `${story.title}. \n\n ${plainText}`;
+      
+      const utterance = new SpeechSynthesisUtterance(fullText);
+      utterance.lang = 'pt-BR';
+      utterance.rate = 1.0;
+      utterance.onend = () => setIsReading(false);
+      utterance.onerror = () => setIsReading(false);
+      
+      window.speechSynthesis.speak(utterance);
+      setIsReading(true);
+    }
+  };
 
   // Scroll progress tracker
   useEffect(() => {
@@ -103,6 +144,19 @@ export default function StoryReader({
           </button>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Read Aloud Toggle */}
+            <button
+              onClick={toggleReading}
+              className={`flex items-center gap-1 p-2 rounded-lg text-xs font-medium transition ${
+                isReading 
+                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' 
+                  : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-slate-800'
+              }`}
+              title={isReading ? "Parar leitura" : "Ouvir conto em áudio"}
+            >
+              {isReading ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            </button>
+
             {/* Font size toggle */}
             <button
               onClick={() => setFontSizeLevel((prev) => (prev + 1) % 3)}
