@@ -37,8 +37,22 @@ export default function StoryReader({
 
   // TTS State
   const [isReading, setIsReading] = useState(false);
+  const [voices, setVoices] = useState([]);
+  const [selectedVoiceIndex, setSelectedVoiceIndex] = useState(0);
 
   useEffect(() => {
+    const loadVoices = () => {
+      if ('speechSynthesis' in window) {
+        const availableVoices = window.speechSynthesis.getVoices().filter(v => v.lang.includes('pt-BR') || v.lang.includes('pt_BR') || v.lang === 'pt-PT');
+        setVoices(availableVoices);
+      }
+    };
+
+    if ('speechSynthesis' in window) {
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
     return () => {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -64,7 +78,11 @@ export default function StoryReader({
       const fullText = `${story.title}. \n\n ${plainText}`;
       
       const utterance = new SpeechSynthesisUtterance(fullText);
-      utterance.lang = 'pt-BR';
+      if (voices.length > 0 && voices[selectedVoiceIndex]) {
+        utterance.voice = voices[selectedVoiceIndex];
+      } else {
+        utterance.lang = 'pt-BR';
+      }
       utterance.rate = 1.0;
       utterance.onend = () => setIsReading(false);
       utterance.onerror = () => setIsReading(false);
@@ -144,18 +162,39 @@ export default function StoryReader({
           </button>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Read Aloud Toggle */}
-            <button
-              onClick={toggleReading}
-              className={`flex items-center gap-1 p-2 rounded-lg text-xs font-medium transition ${
-                isReading 
-                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' 
-                  : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-slate-800'
-              }`}
-              title={isReading ? "Parar leitura" : "Ouvir conto em áudio"}
-            >
-              {isReading ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-            </button>
+            {/* Read Aloud Toggle & Voice Selector */}
+            <div className="flex items-center bg-stone-100 dark:bg-slate-800 rounded-lg p-0.5">
+              <button
+                onClick={toggleReading}
+                className={`flex items-center gap-1 p-1.5 rounded-md text-xs font-medium transition ${
+                  isReading 
+                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' 
+                    : 'text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-slate-700'
+                }`}
+                title={isReading ? "Parar leitura" : "Ouvir conto em áudio"}
+              >
+                {isReading ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </button>
+
+              {voices.length > 1 && (
+                <select 
+                  value={selectedVoiceIndex}
+                  onChange={(e) => {
+                    setSelectedVoiceIndex(Number(e.target.value));
+                    if (isReading) {
+                      window.speechSynthesis.cancel();
+                      setIsReading(false);
+                    }
+                  }}
+                  className="bg-transparent border-none text-[10px] sm:text-xs text-stone-600 dark:text-stone-300 focus:ring-0 cursor-pointer max-w-[80px] sm:max-w-[120px] px-1 truncate outline-none"
+                  title="Escolher Voz"
+                >
+                  {voices.map((v, idx) => (
+                    <option key={idx} value={idx}>{v.name.replace(/Microsoft |Google /g, '')}</option>
+                  ))}
+                </select>
+              )}
+            </div>
 
             {/* Font size toggle */}
             <button
