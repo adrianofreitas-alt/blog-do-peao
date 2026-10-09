@@ -164,6 +164,24 @@ export default function App() {
     showToast("📬 Causo enviado para a Chefia! O administrador irá ler e aprovar antes de ir ao ar.");
   };
 
+  // Generic Update Story
+  const handleUpdateStory = (storyId, updates) => {
+    const updatedStories = stories.map(s => {
+      if (s.id === storyId) {
+        return { ...s, ...updates };
+      }
+      return s;
+    });
+    setStories(updatedStories);
+    saveStoredStories(updatedStories);
+    updateStoryInDb(storyId, updates);
+    
+    if (selectedStory && selectedStory.id === storyId) {
+      setSelectedStory(updatedStories.find(s => s.id === storyId));
+    }
+    showToast("Conto atualizado com sucesso!");
+  };
+
   // Manage Comment Status
   const handleUpdateCommentStatus = (storyId, commentId, updates) => {
     let updatedStory = null;
@@ -348,6 +366,7 @@ export default function App() {
             onDeleteStory={handleDeleteStory}
             onUnpublishStory={handleUnpublishStory}
             onUpdateCommentStatus={handleUpdateCommentStatus}
+            onUpdateStory={handleUpdateStory}
             onBackToBlog={() => setCurrentView('feed')}
           />
         ) : (

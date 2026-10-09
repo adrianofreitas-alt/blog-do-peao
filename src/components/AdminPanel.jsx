@@ -22,6 +22,7 @@ export default function AdminPanel({
   onDeleteStory, 
   onUnpublishStory,
   onUpdateCommentStatus,
+  onUpdateStory,
   onBackToBlog 
 }) {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -375,7 +376,28 @@ export default function AdminPanel({
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto flex-1 font-serif text-sm leading-relaxed text-stone-800 dark:text-stone-200">
               <div className="mb-4 p-3 rounded-xl bg-stone-100 dark:bg-slate-800/60 text-xs font-sans text-stone-600 dark:text-stone-400">
-                <strong>Autor:</strong> {previewStory.author?.name} ({previewStory.author?.role}) • <strong>Data:</strong> {previewStory.date}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <strong>Autor:</strong> {previewStory.author?.name} ({previewStory.author?.role}) • <strong>Data:</strong> {previewStory.date}
+                  </div>
+                  {/* Audio MP3 Field */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="font-semibold text-stone-500">🎧 MP3:</span>
+                    <input 
+                      type="url" 
+                      placeholder="Cole a URL do MP3 aqui..." 
+                      defaultValue={previewStory.audioUrl || ''}
+                      onBlur={(e) => {
+                        const newUrl = e.target.value.trim();
+                        if (newUrl !== previewStory.audioUrl) {
+                          onUpdateStory(previewStory.id, { audioUrl: newUrl });
+                          setPreviewStory(prev => ({ ...prev, audioUrl: newUrl }));
+                        }
+                      }}
+                      className="px-2 py-1.5 text-xs rounded-lg border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:border-amber-500 w-full sm:w-48 placeholder-stone-400"
+                    />
+                  </div>
+                </div>
               </div>
               <div 
                 className="prose-peao text-sm"

@@ -39,6 +39,7 @@ export default function StoryReader({
   const [isReading, setIsReading] = useState(false);
   const [voices, setVoices] = useState([]);
   const [selectedVoiceIndex, setSelectedVoiceIndex] = useState(0);
+  const audioRef = React.useRef(null);
 
   useEffect(() => {
     const loadVoices = () => {
@@ -53,42 +54,62 @@ export default function StoryReader({
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
 
+    if (story.audioUrl) {
+      audioRef.current = new Audio(story.audioUrl);
+      audioRef.current.onended = () => setIsReading(false);
+    }
+
     return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
     };
-  }, []);
+  }, [story.audioUrl]);
 
   const toggleReading = () => {
-    if (!('speechSynthesis' in window)) {
-      alert("Seu navegador não suporta leitura em voz alta.");
-      return;
-    }
-
     if (isReading) {
-      window.speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+      } else if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
       setIsReading(false);
     } else {
-      const plainText = (story.content || '')
-        .replace(/[#*>_-]/g, '')
-        .replace(/`{1,3}[^`\n]*`{1,3}/g, '')
-        .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
-        
-      const fullText = `${story.title}. \n\n ${plainText}`;
-      
-      const utterance = new SpeechSynthesisUtterance(fullText);
-      if (voices.length > 0 && voices[selectedVoiceIndex]) {
-        utterance.voice = voices[selectedVoiceIndex];
+      if (audioRef.current) {
+        audioRef.current.play().catch(e => {
+          alert("Erro ao reproduzir o áudio MP3 salvo.");
+          setIsReading(false);
+        });
+        setIsReading(true);
       } else {
-        utterance.lang = 'pt-BR';
+        if (!('speechSynthesis' in window)) {
+          alert("Seu navegador não suporta leitura em voz alta.");
+          return;
+        }
+        const plainText = (story.content || '')
+          .replace(/[#*>_-]/g, '')
+          .replace(/`{1,3}[^`\n]*`{1,3}/g, '')
+          .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+          
+        const fullText = `${story.title}. \n\n ${plainText}`;
+        
+        const utterance = new SpeechSynthesisUtterance(fullText);
+        if (voices.length > 0 && voices[selectedVoiceIndex]) {
+          utterance.voice = voices[selectedVoiceIndex];
+        } else {
+          utterance.lang = 'pt-BR';
+        }
+        utterance.rate = 1.0;
+        utterance.onend = () => setIsReading(false);
+        utterance.onerror = () => setIsReading(false);
+        
+        window.speechSynthesis.speak(utterance);
+        setIsReading(true);
       }
-      utterance.rate = 1.0;
-      utterance.onend = () => setIsReading(false);
-      utterance.onerror = () => setIsReading(false);
-      
-      window.speechSynthesis.speak(utterance);
-      setIsReading(true);
     }
   };
 
@@ -162,40 +183,6 @@ export default function StoryReader({
           </button>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Read Aloud Toggle & Voice Selector */}
-            <div className="flex items-center bg-stone-100 dark:bg-slate-800 rounded-lg p-0.5">
-              <button
-                onClick={toggleReading}
-                className={`flex items-center gap-1 p-1.5 rounded-md text-xs font-medium transition ${
-                  isReading 
-                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' 
-                    : 'text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-slate-700'
-                }`}
-                title={isReading ? "Parar leitura" : "Ouvir conto em áudio"}
-              >
-                {isReading ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              </button>
-
-              {voices.length > 1 && (
-                <select 
-                  value={selectedVoiceIndex}
-                  onChange={(e) => {
-                    setSelectedVoiceIndex(Number(e.target.value));
-                    if (isReading) {
-                      window.speechSynthesis.cancel();
-                      setIsReading(false);
-                    }
-                  }}
-                  className="bg-transparent border-none text-[10px] sm:text-xs text-stone-600 dark:text-stone-300 focus:ring-0 cursor-pointer max-w-[80px] sm:max-w-[120px] px-1 truncate outline-none"
-                  title="Escolher Voz"
-                >
-                  {voices.map((v, idx) => (
-                    <option key={idx} value={idx}>{v.name.replace(/Microsoft |Google /g, '')}</option>
-                  ))}
-                </select>
-              )}
-            </div>
-
             {/* Font size toggle */}
             <button
               onClick={() => setFontSizeLevel((prev) => (prev + 1) % 3)}
@@ -263,10 +250,46 @@ export default function StoryReader({
           </span>
         </div>
 
-        {/* Title */}
-        <h1 className="font-sans font-black text-3xl sm:text-5xl text-stone-900 dark:text-white leading-[1.2] tracking-tight mb-6">
-          {story.title}
-        </h1>
+        {/* Title and Play Button */}
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
+          <h1 className="font-sans font-black text-3xl sm:text-5xl text-stone-900 dark:text-white leading-[1.2] tracking-tight flex-1">
+            {story.title}
+          </h1>
+
+          <div className="flex items-center gap-2 shrink-0 self-start">
+            <button
+              onClick={toggleReading}
+              className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-sm font-bold shadow-lg transition-transform hover:scale-105 active:scale-95 ${
+                isReading 
+                  ? 'bg-amber-100 text-amber-700 border-2 border-amber-300 dark:bg-amber-900/60 dark:text-amber-400 dark:border-amber-700' 
+                  : 'bg-amber-600 text-white hover:bg-amber-500 shadow-amber-600/30'
+              }`}
+              title={isReading ? "Parar leitura" : "Ouvir conto em áudio"}
+            >
+              {isReading ? <VolumeX className="w-6 h-6 animate-pulse" /> : <Volume2 className="w-6 h-6 animate-pulse" />}
+              <span>{isReading ? "Parar" : "Ouvir Causo"}</span>
+            </button>
+
+            {!story.audioUrl && voices.length > 1 && (
+              <select 
+                value={selectedVoiceIndex}
+                onChange={(e) => {
+                  setSelectedVoiceIndex(Number(e.target.value));
+                  if (isReading) {
+                    window.speechSynthesis.cancel();
+                    setIsReading(false);
+                  }
+                }}
+                className="bg-stone-100 dark:bg-slate-800 border-none text-[11px] text-stone-600 dark:text-stone-300 rounded-xl focus:ring-0 cursor-pointer h-[48px] px-2 outline-none max-w-[120px] truncate"
+                title="Escolher Voz"
+              >
+                {voices.map((v, idx) => (
+                  <option key={idx} value={idx}>{v.name.replace(/Microsoft |Google /g, '')}</option>
+                ))}
+              </select>
+            )}
+          </div>
+        </div>
 
         {/* Author "Crachá" Card */}
         <div className="flex items-center justify-between p-4 rounded-xl bg-stone-100/80 dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 mb-8 backdrop-blur-sm">
