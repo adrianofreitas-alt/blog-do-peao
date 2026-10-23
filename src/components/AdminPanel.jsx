@@ -36,7 +36,7 @@ export default function AdminPanel({
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (username.trim() === 'expressofiao' && password.trim() === '171') {
+    if (username.trim().toLowerCase() === 'expressofiao' && password.trim() === '171') {
       setIsAuthenticated(true);
       sessionStorage.setItem('admin_authenticated', 'true');
       setLoginError('');

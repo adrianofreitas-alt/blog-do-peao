@@ -90,8 +90,12 @@ export default function Footer({ setCurrentView, onResetDefaultStories }) {
           <div className="flex items-center gap-3">
             <p>© {new Date().getFullYear()} Blog do Peão. Todos os direitos reservados.</p>
             <button
-              onClick={() => setCurrentView('admin')}
-              className="opacity-60 hover:opacity-100 hover:text-amber-600 text-stone-500 dark:text-stone-400 transition flex items-center gap-1.5 text-xs font-semibold underline underline-offset-4 cursor-pointer"
+              type="button"
+              onClick={() => {
+                setCurrentView('admin');
+                window.scrollTo({ top: 0, behavior: 'instant' });
+              }}
+              className="opacity-75 hover:opacity-100 hover:text-amber-600 text-stone-500 dark:text-stone-400 transition flex items-center gap-1.5 text-xs font-semibold underline underline-offset-4 cursor-pointer"
               title="Acesso do Administrador"
             >
               <Lock className="w-3.5 h-3.5 text-amber-600" />

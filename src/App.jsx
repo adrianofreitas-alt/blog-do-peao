@@ -85,6 +85,11 @@ export default function App() {
     return () => window.removeEventListener('hashchange', checkHash);
   }, []);
 
+  // Scroll to top on every view switch
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [currentView]);
+
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);

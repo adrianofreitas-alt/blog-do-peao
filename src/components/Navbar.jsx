@@ -7,7 +7,8 @@ import {
   Search, 
   Bookmark, 
   MessageSquareQuote, 
-  Download
+  Download,
+  Lock
 } from 'lucide-react';
 
 export default function Navbar({ 
@@ -100,6 +101,22 @@ export default function Navbar({
               title={isDarkMode ? "Turno do Dia (Claro)" : "Turno da Noite (Escuro)"}
             >
               {isDarkMode ? <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />}
+            </button>
+
+            {/* Sala da Chefia Quick Link */}
+            <button
+              onClick={() => {
+                setCurrentView('admin');
+                window.scrollTo({ top: 0, behavior: 'instant' });
+              }}
+              className={`p-2 rounded-lg transition ${
+                currentView === 'admin'
+                  ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300'
+                  : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-slate-800'
+              }`}
+              title="Acessar Sala da Chefia"
+            >
+              <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
             </button>
 
             {/* Export backup */}
