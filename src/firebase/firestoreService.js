@@ -10,7 +10,8 @@ import {
   query, 
   orderBy 
 } from 'firebase/firestore';
-import { db, isFirebaseConfigured } from './config';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage, isFirebaseConfigured } from './config';
 import { DEFAULT_STORIES, DEFAULT_ANONYMOUS_POSTS } from '../data/defaultStories';
 import { 
   getStoredStories, 
@@ -111,6 +112,28 @@ export async function updateStoryInDb(storyId, updates) {
       console.error("Erro ao atualizar propriedades do conto no Firebase:", error);
     }
   }
+}
+
+export async function uploadAudioFile(storyId, file) {
+  if (storage) {
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storageRef = ref(storage, `audios/${storyId}_${Date.now()}_${safeName}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadUrl = await getDownloadURL(snapshot.ref);
+      return downloadUrl;
+    } catch (err) {
+      console.warn("Upload no Firebase Storage falhou, gerando URL de leitura local:", err);
+    }
+  }
+
+  // Fallback para Base64 Data URL (para reprodução direta)
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (e) => reject(e);
+    reader.readAsDataURL(file);
+  });
 }
 
 export async function deleteStoryFromDb(storyId) {

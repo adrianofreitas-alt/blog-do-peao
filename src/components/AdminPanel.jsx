@@ -12,9 +12,11 @@ import {
   FileText,
   User,
   X,
-  Coffee
+  Coffee,
+  Upload
 } from 'lucide-react';
 import { marked } from 'marked';
+import { uploadAudioFile } from '../firebase/firestoreService';
 
 export default function AdminPanel({ 
   stories, 
@@ -33,6 +35,7 @@ export default function AdminPanel({
   const [loginError, setLoginError] = useState('');
   const [activeTab, setActiveTab] = useState('pending'); // 'pending' | 'published'
   const [previewStory, setPreviewStory] = useState(null);
+  const [uploadingStoryId, setUploadingStoryId] = useState(null);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -258,15 +261,45 @@ export default function AdminPanel({
 
                   {/* Actions for Pending Story */}
                   <div className="flex flex-wrap items-center gap-2 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-stone-200 dark:border-slate-800">
-                    {/* Direct MP3 input beside pending story */}
-                    <div className="flex items-center gap-1.5 bg-stone-50 dark:bg-slate-800 p-1 rounded-xl border border-stone-200 dark:border-slate-700">
-                      <span className="text-xs pl-1">🎧</span>
+                    {/* Direct MP3 file upload / link beside pending story */}
+                    <div className="flex items-center gap-1.5 bg-stone-50 dark:bg-slate-800 p-1.5 rounded-xl border border-stone-200 dark:border-slate-700">
+                      <span className="text-xs pl-0.5">🎧</span>
+                      <label 
+                        className={`cursor-pointer flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold transition shadow-sm ${
+                          uploadingStoryId === story.id
+                            ? 'bg-amber-400 text-stone-900 animate-pulse'
+                            : 'bg-amber-600 hover:bg-amber-500 text-white'
+                        }`}
+                        title="Escolher arquivo MP3 do computador ou celular"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{uploadingStoryId === story.id ? "Salvando..." : "Subir MP3"}</span>
+                        <input
+                          type="file"
+                          accept="audio/mp3,audio/*"
+                          className="hidden"
+                          disabled={uploadingStoryId === story.id}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              setUploadingStoryId(story.id);
+                              const url = await uploadAudioFile(story.id, file);
+                              onUpdateStory(story.id, { audioUrl: url });
+                            } catch (err) {
+                              alert("Erro ao salvar arquivo de áudio.");
+                            } finally {
+                              setUploadingStoryId(null);
+                            }
+                          }}
+                        />
+                      </label>
                       <input
                         type="url"
                         id={`mp3-input-${story.id}`}
                         defaultValue={story.audioUrl || ''}
-                        placeholder="Colar link do MP3..."
-                        className="px-2 py-1 text-xs rounded-lg border border-stone-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-stone-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-amber-500 w-36 sm:w-48 placeholder-stone-400"
+                        placeholder="ou link URL..."
+                        className="px-2 py-1 text-xs rounded-lg border border-stone-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-stone-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-amber-500 w-28 sm:w-36 placeholder-stone-400"
                       />
                       <button
                         type="button"
@@ -277,10 +310,27 @@ export default function AdminPanel({
                             onUpdateStory(story.id, { audioUrl: newUrl });
                           }
                         }}
-                        className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition"
+                        className="px-2 py-1 rounded-lg bg-stone-200 hover:bg-stone-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-stone-800 dark:text-stone-200 text-xs font-semibold transition"
+                        title="Salvar link digitado"
                       >
                         Salvar
                       </button>
+                      {story.audioUrl && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm("Remover o áudio deste conto?")) {
+                              onUpdateStory(story.id, { audioUrl: '' });
+                              const el = document.getElementById(`mp3-input-${story.id}`);
+                              if (el) el.value = '';
+                            }
+                          }}
+                          className="text-stone-400 hover:text-red-500 px-1 text-xs font-bold"
+                          title="Remover áudio deste conto"
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
 
                     <button
@@ -347,15 +397,45 @@ export default function AdminPanel({
               </div>
 
               <div className="flex flex-wrap items-center gap-2 shrink-0">
-                {/* Direct MP3 input beside story */}
-                <div className="flex items-center gap-1.5 bg-stone-50 dark:bg-slate-800 p-1 rounded-xl border border-stone-200 dark:border-slate-700">
-                  <span className="text-xs pl-1">🎧</span>
+                {/* Direct MP3 file upload / link beside published story */}
+                <div className="flex items-center gap-1.5 bg-stone-50 dark:bg-slate-800 p-1.5 rounded-xl border border-stone-200 dark:border-slate-700">
+                  <span className="text-xs pl-0.5">🎧</span>
+                  <label 
+                    className={`cursor-pointer flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold transition shadow-sm ${
+                      uploadingStoryId === story.id
+                        ? 'bg-amber-400 text-stone-900 animate-pulse'
+                        : 'bg-amber-600 hover:bg-amber-500 text-white'
+                    }`}
+                    title="Escolher arquivo MP3 do computador ou celular"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{uploadingStoryId === story.id ? "Salvando..." : "Subir MP3"}</span>
+                    <input
+                      type="file"
+                      accept="audio/mp3,audio/*"
+                      className="hidden"
+                      disabled={uploadingStoryId === story.id}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          setUploadingStoryId(story.id);
+                          const url = await uploadAudioFile(story.id, file);
+                          onUpdateStory(story.id, { audioUrl: url });
+                        } catch (err) {
+                          alert("Erro ao salvar arquivo de áudio.");
+                        } finally {
+                          setUploadingStoryId(null);
+                        }
+                      }}
+                    />
+                  </label>
                   <input
                     type="url"
                     id={`mp3-input-${story.id}`}
                     defaultValue={story.audioUrl || ''}
-                    placeholder="Colar link do MP3..."
-                    className="px-2 py-1 text-xs rounded-lg border border-stone-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-stone-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-amber-500 w-36 sm:w-48 placeholder-stone-400"
+                    placeholder="ou link URL..."
+                    className="px-2 py-1 text-xs rounded-lg border border-stone-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-stone-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-amber-500 w-28 sm:w-36 placeholder-stone-400"
                   />
                   <button
                     type="button"
@@ -366,10 +446,27 @@ export default function AdminPanel({
                         onUpdateStory(story.id, { audioUrl: newUrl });
                       }
                     }}
-                    className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition"
+                    className="px-2 py-1 rounded-lg bg-stone-200 hover:bg-stone-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-stone-800 dark:text-stone-200 text-xs font-semibold transition"
+                    title="Salvar link digitado"
                   >
                     Salvar
                   </button>
+                  {story.audioUrl && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (window.confirm("Remover o áudio deste conto?")) {
+                          onUpdateStory(story.id, { audioUrl: '' });
+                          const el = document.getElementById(`mp3-input-${story.id}`);
+                          if (el) el.value = '';
+                        }
+                      }}
+                      className="text-stone-400 hover:text-red-500 px-1 text-xs font-bold"
+                      title="Remover áudio deste conto"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
 
                 <button
@@ -438,12 +535,43 @@ export default function AdminPanel({
                   {/* Audio MP3 Field */}
                   <div className="flex flex-wrap items-center gap-2 shrink-0">
                     <span className="font-semibold text-stone-600 dark:text-stone-300">🎧 MP3:</span>
+                    <label 
+                      className={`cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm ${
+                        uploadingStoryId === previewStory.id
+                          ? 'bg-amber-400 text-stone-900 animate-pulse'
+                          : 'bg-amber-600 hover:bg-amber-500 text-white'
+                      }`}
+                      title="Escolher arquivo MP3 do computador ou celular"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{uploadingStoryId === previewStory.id ? "Salvando..." : "Subir Arquivo MP3"}</span>
+                      <input
+                        type="file"
+                        accept="audio/mp3,audio/*"
+                        className="hidden"
+                        disabled={uploadingStoryId === previewStory.id}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            setUploadingStoryId(previewStory.id);
+                            const url = await uploadAudioFile(previewStory.id, file);
+                            onUpdateStory(previewStory.id, { audioUrl: url });
+                            setPreviewStory(prev => ({ ...prev, audioUrl: url }));
+                          } catch (err) {
+                            alert("Erro ao salvar arquivo de áudio.");
+                          } finally {
+                            setUploadingStoryId(null);
+                          }
+                        }}
+                      />
+                    </label>
                     <input 
                       type="url" 
                       id="mp3-input-field"
-                      placeholder="Cole o link do áudio MP3..." 
+                      placeholder="ou link URL..." 
                       defaultValue={previewStory.audioUrl || ''}
-                      className="px-2.5 py-1.5 text-xs rounded-lg border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500 w-full sm:w-60 placeholder-stone-400"
+                      className="px-2.5 py-1.5 text-xs rounded-lg border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500 w-full sm:w-44 placeholder-stone-400"
                     />
                     <button
                       type="button"
@@ -455,9 +583,9 @@ export default function AdminPanel({
                           setPreviewStory(prev => ({ ...prev, audioUrl: newUrl }));
                         }
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition shadow-sm"
+                      className="px-2.5 py-1.5 rounded-lg bg-stone-200 hover:bg-stone-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-stone-800 dark:text-stone-200 text-xs font-semibold transition"
                     >
-                      Salvar Áudio
+                      Salvar Link
                     </button>
                     {previewStory.audioUrl && (
                       <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">

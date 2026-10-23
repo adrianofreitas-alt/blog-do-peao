@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 // Configurações do Firebase do Blog do Peão
 export const firebaseConfig = {
@@ -19,15 +20,17 @@ export const isFirebaseConfigured = () => {
 
 let app = null;
 let db = null;
+let storage = null;
 
 if (isFirebaseConfigured()) {
   try {
     app = initializeApp(firebaseConfig);
     db = getFirestore(app);
+    storage = getStorage(app);
     console.log("🔥 Firebase conectado com sucesso ao projeto blog-do-peao!");
   } catch (error) {
     console.error("Erro ao inicializar o Firebase:", error);
   }
 }
 
-export { db };
+export { db, storage };
