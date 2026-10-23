@@ -19,6 +19,7 @@ import {
   getStoredAnonymousPosts, 
   saveStoredAnonymousPosts 
 } from '../utils/storage';
+import { saveAudioBlob } from '../utils/audioStorage';
 
 const STORIES_COLLECTION = 'stories';
 const MURAL_COLLECTION = 'mural';
@@ -115,25 +116,24 @@ export async function updateStoryInDb(storyId, updates) {
 }
 
 export async function uploadAudioFile(storyId, file) {
+  // Tenta upload no Firebase Storage com limite de 4 segundos para nunca travar a interface
   if (storage) {
     try {
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
       const storageRef = ref(storage, `audios/${storyId}_${Date.now()}_${safeName}`);
-      const snapshot = await uploadBytes(storageRef, file);
-      const downloadUrl = await getDownloadURL(snapshot.ref);
+      const uploadPromise = uploadBytes(storageRef, file).then(snap => getDownloadURL(snap.ref));
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Timeout")), 4000)
+      );
+      const downloadUrl = await Promise.race([uploadPromise, timeoutPromise]);
       return downloadUrl;
     } catch (err) {
-      console.warn("Upload no Firebase Storage falhou, gerando URL de leitura local:", err);
+      console.warn("Firebase Storage indisponível, salvando áudio localmente via IndexedDB:", err);
     }
   }
 
-  // Fallback para Base64 Data URL (para reprodução direta)
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (e) => reject(e);
-    reader.readAsDataURL(file);
-  });
+  // Salva no banco de dados local IndexedDB (suporta qualquer tamanho de MP3)
+  return await saveAudioBlob(storyId, file);
 }
 
 export async function deleteStoryFromDb(storyId) {

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { marked } from 'marked';
 import { exportStoryToMarkdown } from '../utils/storage';
+import { getAudioBlobUrl } from '../utils/audioStorage';
 
 export default function StoryReader({ 
   story, 
@@ -59,18 +60,28 @@ export default function StoryReader({
       window.speechSynthesis.cancel();
     }
 
-    if (story.audioUrl) {
-      const audio = new Audio(getPlayableAudioUrl(story.audioUrl));
-      audioRef.current = audio;
-      audio.onended = () => setIsPlayingAudio(false);
-      audio.onerror = () => {
-        setIsPlayingAudio(false);
-      };
-    } else {
-      audioRef.current = null;
+    let isMounted = true;
+    async function initAudio() {
+      if (story.audioUrl) {
+        let src = story.audioUrl;
+        if (src.startsWith('indexeddb://')) {
+          src = await getAudioBlobUrl(story.id);
+        } else {
+          src = getPlayableAudioUrl(src);
+        }
+        if (!isMounted || !src) return;
+        const audio = new Audio(src);
+        audioRef.current = audio;
+        audio.onended = () => setIsPlayingAudio(false);
+        audio.onerror = () => setIsPlayingAudio(false);
+      } else {
+        audioRef.current = null;
+      }
     }
+    initAudio();
 
     return () => {
+      isMounted = false;
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = '';
@@ -79,9 +90,9 @@ export default function StoryReader({
         window.speechSynthesis.cancel();
       }
     };
-  }, [story.audioUrl]);
+  }, [story.audioUrl, story.id]);
 
-  const toggleAudio = () => {
+  const toggleAudio = async () => {
     // Ensure native speech synthesis is always cancelled
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -99,7 +110,17 @@ export default function StoryReader({
       setIsPlayingAudio(false);
     } else {
       if (!audioRef.current) {
-        const audio = new Audio(getPlayableAudioUrl(story.audioUrl));
+        let src = story.audioUrl;
+        if (src.startsWith('indexeddb://')) {
+          src = await getAudioBlobUrl(story.id);
+        } else {
+          src = getPlayableAudioUrl(src);
+        }
+        if (!src) {
+          alert("Arquivo de áudio não encontrado.");
+          return;
+        }
+        const audio = new Audio(src);
         audioRef.current = audio;
         audio.onended = () => setIsPlayingAudio(false);
       }
@@ -107,7 +128,7 @@ export default function StoryReader({
         setIsPlayingAudio(true);
       }).catch(err => {
         console.error("Erro ao tocar áudio MP3:", err);
-        alert("Não foi possível reproduzir o áudio MP3. Verifique se o link está acessível.");
+        alert("Não foi possível reproduzir o áudio MP3.");
         setIsPlayingAudio(false);
       });
     }
