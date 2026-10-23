@@ -307,6 +307,11 @@ export default function AdminPanel({
                   <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-stone-100 dark:bg-slate-800 text-stone-700 dark:text-stone-300">
                     {story.category}
                   </span>
+                  {story.audioUrl && (
+                    <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 flex items-center gap-1">
+                      🎧 MP3
+                    </span>
+                  )}
                   <span className="text-xs text-stone-400">
                     Por {story.author?.name} em {story.date}
                   </span>
@@ -381,21 +386,34 @@ export default function AdminPanel({
                     <strong>Autor:</strong> {previewStory.author?.name} ({previewStory.author?.role}) • <strong>Data:</strong> {previewStory.date}
                   </div>
                   {/* Audio MP3 Field */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-semibold text-stone-500">🎧 MP3:</span>
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <span className="font-semibold text-stone-600 dark:text-stone-300">🎧 MP3:</span>
                     <input 
                       type="url" 
-                      placeholder="Cole a URL do MP3 aqui..." 
+                      id="mp3-input-field"
+                      placeholder="Cole o link do áudio MP3..." 
                       defaultValue={previewStory.audioUrl || ''}
-                      onBlur={(e) => {
-                        const newUrl = e.target.value.trim();
-                        if (newUrl !== previewStory.audioUrl) {
+                      className="px-2.5 py-1.5 text-xs rounded-lg border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500 w-full sm:w-60 placeholder-stone-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = document.getElementById('mp3-input-field');
+                        if (input) {
+                          const newUrl = input.value.trim();
                           onUpdateStory(previewStory.id, { audioUrl: newUrl });
                           setPreviewStory(prev => ({ ...prev, audioUrl: newUrl }));
                         }
                       }}
-                      className="px-2 py-1.5 text-xs rounded-lg border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:border-amber-500 w-full sm:w-48 placeholder-stone-400"
-                    />
+                      className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition shadow-sm"
+                    >
+                      Salvar Áudio
+                    </button>
+                    {previewStory.audioUrl && (
+                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
+                        ✓ Salvo
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

@@ -35,28 +35,39 @@ export default function StoryReader({
   const [commentRole, setCommentRole] = useState('');
   const [commentText, setCommentText] = useState('');
 
-  // TTS State
-  const [isReading, setIsReading] = useState(false);
-  const [voices, setVoices] = useState([]);
-  const [selectedVoiceIndex, setSelectedVoiceIndex] = useState(0);
+  // MP3 Audio Player State
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const audioRef = React.useRef(null);
 
-  useEffect(() => {
-    const loadVoices = () => {
-      if ('speechSynthesis' in window) {
-        const availableVoices = window.speechSynthesis.getVoices().filter(v => v.lang.includes('pt-BR') || v.lang.includes('pt_BR') || v.lang === 'pt-PT');
-        setVoices(availableVoices);
-      }
-    };
+  // Helper to convert share links (Google Drive, Dropbox, etc.) to direct audio stream URLs
+  const getPlayableAudioUrl = (url) => {
+    if (!url) return '';
+    let formatted = url.trim();
+    const gDriveMatch = formatted.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
+    if (gDriveMatch && gDriveMatch[1]) {
+      return `https://docs.google.com/uc?export=download&id=${gDriveMatch[1]}`;
+    }
+    if (formatted.includes('dropbox.com')) {
+      return formatted.replace(/\?dl=0$/, '?raw=1').replace(/\?dl=1$/, '?raw=1');
+    }
+    return formatted;
+  };
 
+  useEffect(() => {
+    // Stop any residual browser native speech synthesis completely
     if ('speechSynthesis' in window) {
-      loadVoices();
-      window.speechSynthesis.onvoiceschanged = loadVoices;
+      window.speechSynthesis.cancel();
     }
 
     if (story.audioUrl) {
-      audioRef.current = new Audio(story.audioUrl);
-      audioRef.current.onended = () => setIsReading(false);
+      const audio = new Audio(getPlayableAudioUrl(story.audioUrl));
+      audioRef.current = audio;
+      audio.onended = () => setIsPlayingAudio(false);
+      audio.onerror = () => {
+        setIsPlayingAudio(false);
+      };
+    } else {
+      audioRef.current = null;
     }
 
     return () => {
@@ -70,46 +81,35 @@ export default function StoryReader({
     };
   }, [story.audioUrl]);
 
-  const toggleReading = () => {
-    if (isReading) {
+  const toggleAudio = () => {
+    // Ensure native speech synthesis is always cancelled
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    if (!story.audioUrl) {
+      alert("Este conto ainda não possui áudio em MP3 cadastrado pela Chefia.");
+      return;
+    }
+
+    if (isPlayingAudio) {
       if (audioRef.current) {
         audioRef.current.pause();
-      } else if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
       }
-      setIsReading(false);
+      setIsPlayingAudio(false);
     } else {
-      if (audioRef.current) {
-        audioRef.current.play().catch(e => {
-          alert("Erro ao reproduzir o áudio MP3 salvo.");
-          setIsReading(false);
-        });
-        setIsReading(true);
-      } else {
-        if (!('speechSynthesis' in window)) {
-          alert("Seu navegador não suporta leitura em voz alta.");
-          return;
-        }
-        const plainText = (story.content || '')
-          .replace(/[#*>_-]/g, '')
-          .replace(/`{1,3}[^`\n]*`{1,3}/g, '')
-          .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
-          
-        const fullText = `${story.title}. \n\n ${plainText}`;
-        
-        const utterance = new SpeechSynthesisUtterance(fullText);
-        if (voices.length > 0 && voices[selectedVoiceIndex]) {
-          utterance.voice = voices[selectedVoiceIndex];
-        } else {
-          utterance.lang = 'pt-BR';
-        }
-        utterance.rate = 1.0;
-        utterance.onend = () => setIsReading(false);
-        utterance.onerror = () => setIsReading(false);
-        
-        window.speechSynthesis.speak(utterance);
-        setIsReading(true);
+      if (!audioRef.current) {
+        const audio = new Audio(getPlayableAudioUrl(story.audioUrl));
+        audioRef.current = audio;
+        audio.onended = () => setIsPlayingAudio(false);
       }
+      audioRef.current.play().then(() => {
+        setIsPlayingAudio(true);
+      }).catch(err => {
+        console.error("Erro ao tocar áudio MP3:", err);
+        alert("Não foi possível reproduzir o áudio MP3. Verifique se o link está acessível.");
+        setIsPlayingAudio(false);
+      });
     }
   };
 
@@ -258,36 +258,17 @@ export default function StoryReader({
 
           <div className="flex items-center gap-2 shrink-0 self-start">
             <button
-              onClick={toggleReading}
+              onClick={toggleAudio}
               className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-sm font-bold shadow-lg transition-transform hover:scale-105 active:scale-95 ${
-                isReading 
+                isPlayingAudio 
                   ? 'bg-amber-100 text-amber-700 border-2 border-amber-300 dark:bg-amber-900/60 dark:text-amber-400 dark:border-amber-700' 
                   : 'bg-amber-600 text-white hover:bg-amber-500 shadow-amber-600/30'
               }`}
-              title={isReading ? "Parar leitura" : "Ouvir conto em áudio"}
+              title={isPlayingAudio ? "Pausar áudio" : "Ouvir conto em MP3"}
             >
-              {isReading ? <VolumeX className="w-6 h-6 animate-pulse" /> : <Volume2 className="w-6 h-6 animate-pulse" />}
-              <span>{isReading ? "Parar" : "Ouvir Causo"}</span>
+              {isPlayingAudio ? <VolumeX className="w-6 h-6 animate-pulse" /> : <Volume2 className="w-6 h-6 animate-pulse" />}
+              <span>{isPlayingAudio ? "Pausar Causo" : "Ouvir Causo"}</span>
             </button>
-
-            {!story.audioUrl && voices.length > 1 && (
-              <select 
-                value={selectedVoiceIndex}
-                onChange={(e) => {
-                  setSelectedVoiceIndex(Number(e.target.value));
-                  if (isReading) {
-                    window.speechSynthesis.cancel();
-                    setIsReading(false);
-                  }
-                }}
-                className="bg-stone-100 dark:bg-slate-800 border-none text-[11px] text-stone-600 dark:text-stone-300 rounded-xl focus:ring-0 cursor-pointer h-[48px] px-2 outline-none max-w-[120px] truncate"
-                title="Escolher Voz"
-              >
-                {voices.map((v, idx) => (
-                  <option key={idx} value={idx}>{v.name.replace(/Microsoft |Google /g, '')}</option>
-                ))}
-              </select>
-            )}
           </div>
         </div>
 
