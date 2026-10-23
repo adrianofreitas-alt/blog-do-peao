@@ -257,7 +257,32 @@ export default function AdminPanel({
                   </div>
 
                   {/* Actions for Pending Story */}
-                  <div className="flex items-center gap-2 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-stone-200 dark:border-slate-800">
+                  <div className="flex flex-wrap items-center gap-2 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-stone-200 dark:border-slate-800">
+                    {/* Direct MP3 input beside pending story */}
+                    <div className="flex items-center gap-1.5 bg-stone-50 dark:bg-slate-800 p-1 rounded-xl border border-stone-200 dark:border-slate-700">
+                      <span className="text-xs pl-1">🎧</span>
+                      <input
+                        type="url"
+                        id={`mp3-input-${story.id}`}
+                        defaultValue={story.audioUrl || ''}
+                        placeholder="Colar link do MP3..."
+                        className="px-2 py-1 text-xs rounded-lg border border-stone-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-stone-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-amber-500 w-36 sm:w-48 placeholder-stone-400"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const el = document.getElementById(`mp3-input-${story.id}`);
+                          if (el) {
+                            const newUrl = el.value.trim();
+                            onUpdateStory(story.id, { audioUrl: newUrl });
+                          }
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition"
+                      >
+                        Salvar
+                      </button>
+                    </div>
+
                     <button
                       onClick={() => setPreviewStory(story)}
                       className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-800 dark:text-stone-200 text-xs font-semibold transition"
@@ -321,7 +346,32 @@ export default function AdminPanel({
                 </h3>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                {/* Direct MP3 input beside story */}
+                <div className="flex items-center gap-1.5 bg-stone-50 dark:bg-slate-800 p-1 rounded-xl border border-stone-200 dark:border-slate-700">
+                  <span className="text-xs pl-1">🎧</span>
+                  <input
+                    type="url"
+                    id={`mp3-input-${story.id}`}
+                    defaultValue={story.audioUrl || ''}
+                    placeholder="Colar link do MP3..."
+                    className="px-2 py-1 text-xs rounded-lg border border-stone-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-stone-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-amber-500 w-36 sm:w-48 placeholder-stone-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const el = document.getElementById(`mp3-input-${story.id}`);
+                      if (el) {
+                        const newUrl = el.value.trim();
+                        onUpdateStory(story.id, { audioUrl: newUrl });
+                      }
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition"
+                  >
+                    Salvar
+                  </button>
+                </div>
+
                 <button
                   onClick={() => setPreviewStory(story)}
                   className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-700 dark:text-stone-300 text-xs font-medium transition"
